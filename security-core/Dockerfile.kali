@@ -1,0 +1,121 @@
+FROM debian:bookworm-slim AS base
+
+# --- builder stage: compiles httprobe from source, since upstream only
+# publishes amd64/darwin-amd64 binaries and this needs to work on arm64
+# (Apple Silicon) hosts too. Building natively here avoids relying on
+# qemu emulation for a foreign-arch binary, which is what broke this
+# originally - httprobe's amd64 release couldn't even find its own dynamic
+# linker under emulation on an arm64 host.
+FROM golang:1.22-bookworm AS httprobe-builder
+RUN go install github.com/tomnomnom/httprobe@v0.1.2
+
+FROM base
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
+# Update and install base dependencies
+RUN apt-get update && apt-get install -y \
+    nmap \
+    masscan \
+    sqlmap \
+    hydra \
+    whatweb \
+    curl \
+    wget \
+    git \
+    vim \
+    nano \
+    python3 \
+    python3-pip \
+    python3-venv \
+    unzip \
+    ca-certificates \
+    gnupg \
+    libpcap-dev \
+    perl \
+    libnet-ssleay-perl \
+    libxml2-dev \
+    libxslt1-dev \
+    libjson-perl \
+    libxml-writer-perl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Metasploit Framework - this image is Debian-based, not actual Kali Linux,
+# so msfconsole was never available via apt here (unlike nmap/sqlmap/etc
+# above, which are plain Debian packages). The official installer script
+# adds its own apt source and pulls a self-contained bundle - supports
+# both amd64 and arm64. This is a large download (~1.5-2GB installed) -
+# expect the image build to take noticeably longer once this lands.
+RUN curl -fsSL https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb -o /tmp/msfinstall && \
+    chmod +x /tmp/msfinstall && \
+    /tmp/msfinstall && \
+    rm -f /tmp/msfinstall
+
+# Download pre-built security tools, matching the actual build platform.
+# TARGETARCH is set automatically by buildkit ("amd64" or "arm64") - the
+# earlier version of this file hardcoded amd64 URLs, which silently
+# produced broken binaries (missing dynamic linker under emulation, or
+# outright crashes) when built on an arm64 host like Apple Silicon.
+ARG TARGETARCH
+RUN mkdir -p /usr/local/bin && \
+    case "${TARGETARCH}" in \
+        amd64) PD_ARCH=amd64; GOBUSTER_ARCH=x86_64 ;; \
+        arm64) PD_ARCH=arm64; GOBUSTER_ARCH=arm64 ;; \
+        *) echo "unsupported architecture: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac && \
+    # Subfinder
+    curl -sL https://github.com/projectdiscovery/subfinder/releases/download/v2.6.6/subfinder_2.6.6_linux_${PD_ARCH}.zip -o /tmp/subfinder.zip && \
+    unzip -o /tmp/subfinder.zip -d /tmp && mv /tmp/subfinder /usr/local/bin/ && \
+    # Nuclei
+    curl -sL https://github.com/projectdiscovery/nuclei/releases/download/v3.2.9/nuclei_3.2.9_linux_${PD_ARCH}.zip -o /tmp/nuclei.zip && \
+    unzip -o /tmp/nuclei.zip -d /tmp && mv /tmp/nuclei /usr/local/bin/ && \
+    # Httpx
+    curl -sL https://github.com/projectdiscovery/httpx/releases/download/v1.6.6/httpx_1.6.6_linux_${PD_ARCH}.zip -o /tmp/httpx.zip && \
+    unzip -o /tmp/httpx.zip -d /tmp && mv /tmp/httpx /usr/local/bin/ && \
+    # Gobuster
+    curl -sL https://github.com/OJ/gobuster/releases/download/v3.6.0/gobuster_Linux_${GOBUSTER_ARCH}.tar.gz -o /tmp/gobuster.tar.gz && \
+    tar -xzf /tmp/gobuster.tar.gz -C /tmp && mv /tmp/gobuster /usr/local/bin/ && \
+    # Cleanup
+    rm -rf /tmp/*.zip /tmp/*.tar.gz && \
+    chmod +x /usr/local/bin/*
+
+# httprobe - compiled natively for this platform in the builder stage above
+COPY --from=httprobe-builder /go/bin/httprobe /usr/local/bin/httprobe
+RUN chmod +x /usr/local/bin/httprobe
+
+# Install nikto from git
+RUN git clone https://github.com/sullo/nikto.git /opt/nikto && \
+    ln -s /opt/nikto/program/nikto.pl /usr/local/bin/nikto && \
+    chmod +x /opt/nikto/program/nikto.pl
+
+# Install Python packages
+RUN pip3 install --no-cache-dir --break-system-packages \
+    requests \
+    beautifulsoup4 \
+    lxml \
+    python-nmap \
+    ipaddress
+
+# Create working directories
+RUN mkdir -p /root/workdir /root/scans /root/tools
+WORKDIR /root/workdir
+
+# Copy tool wrapper scripts and default configs
+COPY scripts/ /root/scripts/
+COPY configs/ /root/configs/
+
+# Make scripts executable
+RUN chmod +x /root/scripts/*.sh || true
+
+# Set PATH (scripts callable by name, e.g. `nmap_scan.sh target.com`)
+ENV PATH="/usr/local/bin:/root/tools:/root/scripts:${PATH}"
+
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD nmap --version || exit 1
+
+# Default command
+CMD ["/bin/bash"]

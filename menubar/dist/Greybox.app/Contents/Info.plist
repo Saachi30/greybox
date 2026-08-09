@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>Greybox</string>
+    <key>CFBundleDisplayName</key>
+    <string>Greybox</string>
+    <key>CFBundleIdentifier</key>
+    <string>dev.greybox.menubar</string>
+    <key>CFBundleVersion</key>
+    <string>0.1.0</string>
+    <key>CFBundleShortVersionString</key>
+    <string>0.1.0</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleExecutable</key>
+    <string>GreyboxMenuBar</string>
+
+    <!-- No dock icon, no menu bar application menu - pure status-item app -->
+    <key>LSUIElement</key>
+    <true/>
+
+    <key>LSMinimumSystemVersion</key>
+    <string>13.0</string>
+
+    <!-- Shown the first time greybox asks AppleScript for the active tab URL -->
+    <key>NSAppleEventsUsageDescription</key>
+    <string>Greybox reads the current tab's URL only when you click "Scan this site" - it never runs in the background.</string>
+</dict>
+</plist>

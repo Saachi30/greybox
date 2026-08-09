@@ -1,0 +1,38 @@
+[project]
+name = "greybox-cli"
+version = "0.1.0"
+description = "Local, natural-language pentesting assistant CLI"
+requires-python = ">=3.10"
+dependencies = [
+    "typer>=0.12",
+    "rich>=13",
+    "requests>=2.31",
+    "pydantic>=2.5",
+    "weasyprint>=61",
+    "jinja2>=3.1",
+    "python-dotenv>=1.0",
+]
+
+[project.scripts]
+greybox = "greybox_cli.cli:main"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+# core/ and report/ live one level up (repo_root/core, repo_root/report) but
+# are bundled directly into this wheel so `pip install ./cli` or
+# `pipx install ./cli` is fully self-contained - it does NOT depend on the
+# repo checkout still being on disk or on sys.path tricks. Only the Kali
+# container + docker-compose.yml need the actual repo checkout (via
+# `greybox setup`, which fetches or locates it separately).
+[tool.setuptools]
+packages = ["greybox_cli", "core", "report"]
+
+[tool.setuptools.package-dir]
+greybox_cli = "greybox_cli"
+core = "../core"
+report = "../report"
+
+[tool.setuptools.package-data]
+report = ["template.html"]

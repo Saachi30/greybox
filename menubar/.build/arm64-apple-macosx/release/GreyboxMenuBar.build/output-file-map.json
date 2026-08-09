@@ -1,0 +1,37 @@
+{
+  "": {
+    "dependencies": "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/GreyboxMenuBar.d",
+    "object": "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/GreyboxMenuBar.o",
+    "swift-dependencies": "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/primary.swiftdeps"
+  },
+  "/Users/saachi/Developer/projects/greybox/menubar/Sources/GreyboxMenuBar/AppDelegate.swift": {
+    "object": "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/AppDelegate.swift.o",
+    "swiftmodule": "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/AppDelegate~partial.swiftmodule",
+    "swift-dependencies": "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/AppDelegate.swiftdeps",
+    "diagnostics": "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/AppDelegate.dia"
+  },
+  "/Users/saachi/Developer/projects/greybox/menubar/Sources/GreyboxMenuBar/BackendClient.swift": {
+    "object": "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/BackendClient.swift.o",
+    "swiftmodule": "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/BackendClient~partial.swiftmodule",
+    "swift-dependencies": "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/BackendClient.swiftdeps",
+    "diagnostics": "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/BackendClient.dia"
+  },
+  "/Users/saachi/Developer/projects/greybox/menubar/Sources/GreyboxMenuBar/BrowserTab.swift": {
+    "object": "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/BrowserTab.swift.o",
+    "swiftmodule": "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/BrowserTab~partial.swiftmodule",
+    "swift-dependencies": "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/BrowserTab.swiftdeps",
+    "diagnostics": "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/BrowserTab.dia"
+  },
+  "/Users/saachi/Developer/projects/greybox/menubar/Sources/GreyboxMenuBar/PopoverView.swift": {
+    "object": "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/PopoverView.swift.o",
+    "swiftmodule": "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/PopoverView~partial.swiftmodule",
+    "swift-dependencies": "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/PopoverView.swiftdeps",
+    "diagnostics": "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/PopoverView.dia"
+  },
+  "/Users/saachi/Developer/projects/greybox/menubar/Sources/GreyboxMenuBar/main.swift": {
+    "object": "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/main.swift.o",
+    "swiftmodule": "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/main~partial.swiftmodule",
+    "swift-dependencies": "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/main.swiftdeps",
+    "diagnostics": "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/main.dia"
+  }
+}

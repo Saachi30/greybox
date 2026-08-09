@@ -1,0 +1,35 @@
+# GREYBOX Metasploit Resource File
+# Auto-configuration for Metasploit Framework
+
+# Set workspace
+workspace -a greybox
+
+# Load plugins
+load nessus
+load nexpose
+load wmap
+
+# Set global options
+setg LHOST 0.0.0.0
+setg LPORT 4444
+setg VERBOSE true
+setg THREADS 10
+setg ConnectTimeout 30
+setg SessionCommunicationTimeout 300
+
+# Database setup
+db_status
+
+# Console banner
+banner
+echo "[*] GREYBOX Metasploit Framework initialized"
+echo "[*] Workspace: greybox"
+echo "[*] Database: Connected"
+echo ""
+echo "Quick commands:"
+echo "  search <term>     - Search for modules"
+echo "  use <module>      - Select a module"
+echo "  show options      - View module options"
+echo "  set <opt> <val>   - Set option value"
+echo "  run               - Execute module"
+echo ""

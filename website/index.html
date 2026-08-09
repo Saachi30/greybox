@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>greybox - local-first AI pentesting assistant</title>
+<meta name="description" content="A local-first, natural-language pentesting assistant. Scan execution never leaves your machine.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="logo" href="#top">
+      <span class="mark"><svg viewBox="0 0 20 20"><rect x="1" y="1" width="8.5" height="18" fill="#e7e8ec"/><rect x="10.5" y="1" width="8.5" height="18" fill="none" stroke="#e7e8ec" stroke-width="1.5"/></svg></span>
+      greybox
+    </a>
+    <div class="navlinks">
+      <a href="#install">Install</a>
+      <a href="#requirements">Requirements</a>
+      <a href="#trust">Security</a>
+      <a href="https://github.com/Saachi30/greybox/blob/main/docs/RUNBOOK.md">Docs</a>
+      <a href="https://github.com/Saachi30/greybox">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div class="eyebrow">local-first pentesting assistant</div>
+    <h1>Type what you want to check.<br>It proposes the command. You confirm.</h1>
+    <p class="lede">
+      One command runs a full recon sweep - subdomains, ports, web
+      vulnerabilities - in an isolated Kali container, entirely on your own
+      machine. The report comes back organized by severity, with a plain-
+      English fix for each finding, not a wall of raw scanner text.
+    </p>
+    <p class="lede">
+      Prefer granular control? <code>greybox ask "check open ports"</code>
+      works the same way, one tool at a time - your call.
+    </p>
+    <div class="fact-line">
+      <strong>Scan execution never leaves your machine.</strong>
+      The only thing that can optionally go anywhere else is text -
+      parsed findings sent for report-writing, and only if you turn that
+      on yourself. Off by default.
+    </div>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="#install">Install greybox</a>
+      <a class="btn btn-ghost" href="https://github.com/Saachi30/greybox">View source</a>
+    </div>
+  </div>
+</header>
+
+<section id="how">
+  <div class="wrap">
+    <h2>How it works</h2>
+    <p class="section-sub">One command for a full first-pass assessment, or granular control one tool at a time - your call. Nothing runs without your yes either way.</p>
+    <div class="steps">
+      <div class="step">
+        <svg class="step-mark" viewBox="0 0 20 20"><rect x="1" y="1" width="8.5" height="18" fill="#e7e8ec"/><rect x="10.5" y="1" width="8.5" height="18" fill="none" stroke="#e7e8ec" stroke-width="1.5"/></svg>
+        <div>
+          <h3>Run the full sweep, or ask for one thing at a time</h3>
+          <p><code>greybox scan example.com</code> runs a complete non-destructive recon sweep - subdomains, live hosts, tech fingerprinting, ports, web vulnerabilities - end to end. Or use <code>greybox ask "check open ports"</code> for one tool at a time, if that's what you want instead. Every proposed command is shown and confirmed before it runs, either way.</p>
+        </div>
+      </div>
+      <div class="step">
+        <svg class="step-mark" viewBox="0 0 20 20"><rect x="1" y="1" width="8.5" height="18" fill="#e7e8ec"/><rect x="10.5" y="1" width="8.5" height="18" fill="none" stroke="#e7e8ec" stroke-width="1.5"/></svg>
+        <div>
+          <h3>Findings are tagged by severity, not just dumped as raw output</h3>
+          <p>The local model reads what each tool actually found and organizes it: a plain-language methodology section, a severity-tagged list of real findings (critical/high/medium/low/info), and a concrete fix for each one - not a wall of unlabeled scanner text.</p>
+        </div>
+      </div>
+      <div class="step">
+        <svg class="step-mark" viewBox="0 0 20 20"><rect x="1" y="1" width="8.5" height="18" fill="#e7e8ec"/><rect x="10.5" y="1" width="8.5" height="18" fill="none" stroke="#e7e8ec" stroke-width="1.5"/></svg>
+        <div>
+          <h3>Get a report</h3>
+          <p>Generated automatically at the end of <code>greybox scan</code>, or on demand with <code>greybox report generate &lt;session&gt;</code> - a PDF with the executive summary, the severity-tagged findings and fixes, and every raw result underneath, written by a local model by default.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="install">
+  <div class="wrap">
+    <h2>Install</h2>
+    <p class="section-sub">
+      The CLI installs with no Docker required and works immediately -
+      dry-run intent parsing, plus the two tools that need no scanning
+      engine at all (email discovery, certificate-transparency lookups).
+      The full Kali/local-LLM engine is a separate step you run when
+      you're ready.
+    </p>
+
+    <div class="tabs" id="os-tabs">
+      <button class="tab" data-os="linux">Linux</button>
+      <button class="tab" data-os="mac">macOS</button>
+      <button class="tab" data-os="windows">Windows</button>
+    </div>
+
+    <div class="install-panel" id="panel-linux">
+      <div class="code-block"><code>curl -fsSL https://&lt;host&gt;/install.sh -o install.sh
+bash install.sh</code></div>
+      <div class="code-actions">
+        <a href="https://github.com/Saachi30/greybox/blob/main/install.sh" target="_blank">view script before running it</a>
+        <button onclick="copyBlock(this)" data-target="panel-linux">copy</button>
+      </div>
+      <div class="install-note">
+        Installs the CLI first (no Docker needed for that step), then asks
+        separately whether to set up the full scanning engine.
+      </div>
+    </div>
+
+    <div class="install-panel" id="panel-mac">
+      <div class="code-block"><code>brew tap Saachi30/greybox
+brew install greybox
+brew install --cask greybox-menubar   # optional: menu bar companion</code></div>
+      <div class="code-actions">
+        <a href="https://github.com/Saachi30/greybox/blob/main/packaging/homebrew/greybox.rb" target="_blank">view formula</a>
+        <button onclick="copyBlock(this)" data-target="panel-mac">copy</button>
+      </div>
+      <div class="install-note">
+        Apple Silicon's unified memory makes even 8B-class local report
+        models usably fast without a discrete GPU - a real advantage for
+        Mac specifically. Or use the plain install script:
+        <code>curl -fsSL https://&lt;host&gt;/install.sh -o install.sh &amp;&amp; bash install.sh</code>
+      </div>
+    </div>
+
+    <div class="install-panel" id="panel-windows">
+      <div class="code-block"><code>irm https://&lt;host&gt;/install.ps1 -OutFile install.ps1
+.\install.ps1</code></div>
+      <div class="code-actions">
+        <a href="https://github.com/Saachi30/greybox/blob/main/install.ps1" target="_blank">view script before running it</a>
+        <button onclick="copyBlock(this)" data-target="panel-windows">copy</button>
+      </div>
+      <div class="install-note">
+        The full scanning engine needs WSL2, which can require a reboot to
+        enable - the script tells you this before doing anything, never
+        as a surprise. Installing just the CLI doesn't need WSL2 at all.
+      </div>
+    </div>
+
+    <p class="cli-only-link">
+      Just evaluating? <code>pipx install greybox-cli</code> gets you the
+      CLI alone, zero Docker footprint, works in dry-run/intent-parsing
+      mode immediately.
+    </p>
+  </div>
+</section>
+
+<section id="requirements">
+  <div class="wrap">
+    <h2>Requirements</h2>
+    <p class="section-sub">Actual numbers, not vague tiers - so you know before you start a multi-GB download whether this fits your machine.</p>
+    <table>
+      <thead>
+        <tr><th>Tier</th><th>RAM</th><th>Disk</th><th>GPU</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td data-label="Tier">CLI only</td>
+          <td data-label="RAM" class="muted">2GB free</td>
+          <td data-label="Disk" class="muted">~200MB</td>
+          <td data-label="GPU" class="muted">none</td>
+          <td data-label="Notes" class="muted">pipx install, dry-run / intent-parsing only, no Docker</td>
+        </tr>
+        <tr>
+          <td data-label="Tier">Minimum (full engine, CPU-only)</td>
+          <td data-label="RAM" class="muted">8GB total system RAM</td>
+          <td data-label="Disk" class="muted">~14GB free</td>
+          <td data-label="GPU" class="muted">none</td>
+          <td data-label="Notes" class="muted">Kali image (~3-4GB, includes Metasploit) + llama3.2:3b (~2GB) for CLI intent parsing - usable, not fast</td>
+        </tr>
+        <tr>
+          <td data-label="Tier">Recommended (local report writing)</td>
+          <td data-label="RAM" class="muted">16GB total system RAM</td>
+          <td data-label="Disk" class="muted">~20GB free</td>
+          <td data-label="GPU" class="muted">8GB+ VRAM helps, not required on Apple Silicon</td>
+          <td data-label="Notes" class="muted">adds llama3.1:8b (~4.7GB) for report writing at acceptable speed</td>
+        </tr>
+        <tr>
+          <td data-label="Tier">Below minimum</td>
+          <td data-label="RAM" class="muted">-</td>
+          <td data-label="Disk" class="muted">-</td>
+          <td data-label="GPU" class="muted">-</td>
+          <td data-label="Notes" class="muted">use hosted inference for report writing only; intent parsing still needs the ~2GB tier locally</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="trust">
+  <div class="wrap">
+    <h2>What's local, what's optional</h2>
+    <p class="section-sub">Concrete, not reassuring-in-the-abstract - this is the part worth actually reading before you run anything.</p>
+    <ul class="trust-list">
+      <li><span class="tick">&#10003;</span><span><strong>Scan execution is never remote.</strong> The Kali container and the tools it runs (nmap, sqlmap, etc.) always run on your own machine, against targets you declared. Your target's logs show your IP, not a third party's.</span></li>
+      <li><span class="tick">&#10003;</span><span><strong>Hosted inference, if you enable it, only ever sees parsed findings</strong> - never raw scan traffic, and it never runs a scan itself. It's off by default; turning it on is a deliberate step, not a default you have to opt out of.</span></li>
+      <li><span class="tick">&#10003;</span><span><strong>No account required.</strong> Nothing here is gated behind a login.</span></li>
+      <li><span class="tick">&#10003;</span><span><strong>No telemetry by default.</strong> If you or a self-hosted instance turns on the optional install counter, it records a random instance ID and a ping count - nothing else, and it's documented in <a href="https://github.com/Saachi30/greybox/blob/main/core/telemetry.py">core/telemetry.py</a>.</span></li>
+      <li><span class="tick">&#10003;</span><span><strong>Source is public.</strong> Every install script linked above has a "view script" link right next to the copy button - not buried in a footer.</span></li>
+      <li><span class="tick">&#10003;</span><span><strong>Permissions are named up front.</strong> Docker access for the CLI/backend; macOS Automation permission for the menu bar app, requested only when you click "scan this site," never before.</span></li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>MIT licensed</span>
+    <span><a href="https://github.com/Saachi30/greybox/releases">Releases</a></span>
+    <span><a href="https://github.com/Saachi30/greybox/blob/main/docs/RUNBOOK.md">Documentation</a></span>
+    <span><a href="https://github.com/Saachi30/greybox">Source</a></span>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

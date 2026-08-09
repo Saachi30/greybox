@@ -1,0 +1,66 @@
+client:
+  name: basic
+  file-system: device-agnostic
+tools: {}
+targets:
+  "GreyboxMenuBar-arm64-apple-macosx-release.exe": ["<GreyboxMenuBar-arm64-apple-macosx-release.exe>"]
+  "GreyboxMenuBar-arm64-apple-macosx-release.module": ["<GreyboxMenuBar-arm64-apple-macosx-release.module>"]
+  "PackageStructure": ["<PackageStructure>"]
+  "main": ["<GreyboxMenuBar-arm64-apple-macosx-release.exe>","<GreyboxMenuBar-arm64-apple-macosx-release.module>"]
+  "test": ["<GreyboxMenuBar-arm64-apple-macosx-release.exe>","<GreyboxMenuBar-arm64-apple-macosx-release.module>"]
+default: "main"
+nodes:
+  "/Users/saachi/Developer/projects/greybox/menubar/Sources/GreyboxMenuBar/":
+    is-directory-structure: true
+    content-exclusion-patterns: [".git",".build"]
+commands:
+  "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/Users/saachi/Developer/projects/greybox/menubar/Sources/GreyboxMenuBar/AppDelegate.swift","/Users/saachi/Developer/projects/greybox/menubar/Sources/GreyboxMenuBar/BackendClient.swift","/Users/saachi/Developer/projects/greybox/menubar/Sources/GreyboxMenuBar/BrowserTab.swift","/Users/saachi/Developer/projects/greybox/menubar/Sources/GreyboxMenuBar/PopoverView.swift","/Users/saachi/Developer/projects/greybox/menubar/Sources/GreyboxMenuBar/main.swift"]
+    outputs: ["/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/sources"]
+    description: "Write auxiliary file /Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/sources"
+
+  "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.product/Objects.LinkFileList":
+    tool: write-auxiliary-file
+    inputs: ["<link-file-list>","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/AppDelegate.swift.o","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/BackendClient.swift.o","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/BrowserTab.swift.o","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/PopoverView.swift.o","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/main.swift.o"]
+    outputs: ["/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.product/Objects.LinkFileList"]
+    description: "Write auxiliary file /Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.product/Objects.LinkFileList"
+
+  "/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt":
+    tool: write-auxiliary-file
+    inputs: ["<swift-get-version>","/Library/Developer/CommandLineTools/usr/bin/swiftc"]
+    outputs: ["/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"]
+    always-out-of-date: "true"
+    description: "Write auxiliary file /Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
+
+  "<GreyboxMenuBar-arm64-apple-macosx-release.exe>":
+    tool: phony
+    inputs: ["/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar"]
+    outputs: ["<GreyboxMenuBar-arm64-apple-macosx-release.exe>"]
+
+  "<GreyboxMenuBar-arm64-apple-macosx-release.module>":
+    tool: phony
+    inputs: ["/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/AppDelegate.swift.o","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/BackendClient.swift.o","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/BrowserTab.swift.o","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/PopoverView.swift.o","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/main.swift.o","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/Modules/GreyboxMenuBar.swiftmodule"]
+    outputs: ["<GreyboxMenuBar-arm64-apple-macosx-release.module>"]
+
+  "C.GreyboxMenuBar-arm64-apple-macosx-release.exe":
+    tool: shell
+    inputs: ["/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/AppDelegate.swift.o","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/BackendClient.swift.o","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/BrowserTab.swift.o","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/PopoverView.swift.o","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/main.swift.o","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.product/Objects.LinkFileList"]
+    outputs: ["/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar"]
+    description: "Linking ./.build/arm64-apple-macosx/release/GreyboxMenuBar"
+    args: ["/Library/Developer/CommandLineTools/usr/bin/swiftc","-L","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release","-o","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar","-module-name","GreyboxMenuBar","-Xlinker","-no_warn_duplicate_libraries","-emit-executable","-Xlinker","-dead_strip","-Xlinker","-alias","-Xlinker","_GreyboxMenuBar_main","-Xlinker","_main","-Xlinker","-rpath","-Xlinker","@loader_path","@/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.product/Objects.LinkFileList","-Xlinker","-rpath","-Xlinker","/Library/Developer/CommandLineTools/usr/lib/swift-6.2/macosx","-target","arm64-apple-macosx13.0","-I","/Library/Developer/CommandLineTools/Library/Developer/Frameworks","-L","/Library/Developer/CommandLineTools/Library/Developer/Frameworks","-plugin-path","/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing","-sdk","/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk","-g"]
+
+  "C.GreyboxMenuBar-arm64-apple-macosx-release.module":
+    tool: shell
+    inputs: ["/Users/saachi/Developer/projects/greybox/menubar/Sources/GreyboxMenuBar/AppDelegate.swift","/Users/saachi/Developer/projects/greybox/menubar/Sources/GreyboxMenuBar/BackendClient.swift","/Users/saachi/Developer/projects/greybox/menubar/Sources/GreyboxMenuBar/BrowserTab.swift","/Users/saachi/Developer/projects/greybox/menubar/Sources/GreyboxMenuBar/PopoverView.swift","/Users/saachi/Developer/projects/greybox/menubar/Sources/GreyboxMenuBar/main.swift","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/sources"]
+    outputs: ["/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/AppDelegate.swift.o","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/BackendClient.swift.o","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/BrowserTab.swift.o","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/PopoverView.swift.o","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/main.swift.o","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/Modules/GreyboxMenuBar.swiftmodule"]
+    description: "Compiling Swift Module 'GreyboxMenuBar' (5 sources)"
+    args: ["/Library/Developer/CommandLineTools/usr/bin/swiftc","-module-name","GreyboxMenuBar","-emit-dependencies","-emit-module","-emit-module-path","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/Modules/GreyboxMenuBar.swiftmodule","-output-file-map","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/output-file-map.json","-whole-module-optimization","-num-threads","10","-c","@/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/GreyboxMenuBar.build/sources","-I","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/Modules","-target","arm64-apple-macosx13.0","-whole-module-optimization","-num-threads","10","-serialize-diagnostics","-O","-j10","-DSWIFT_PACKAGE","-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE","-module-cache-path","/Users/saachi/Developer/projects/greybox/menubar/.build/arm64-apple-macosx/release/ModuleCache","-parseable-output","-Xfrontend","-entry-point-function-name","-Xfrontend","GreyboxMenuBar_main","-color-diagnostics","-swift-version","5","-I","/Library/Developer/CommandLineTools/Library/Developer/Frameworks","-L","/Library/Developer/CommandLineTools/Library/Developer/Frameworks","-plugin-path","/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing","-sdk","/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk","-g","-Xcc","-isysroot","-Xcc","/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk","-Xcc","-fPIC","-Xcc","-g","-package-name","menubar"]
+
+  "PackageStructure":
+    tool: package-structure-tool
+    inputs: ["/Users/saachi/Developer/projects/greybox/menubar/Sources/GreyboxMenuBar/","/Users/saachi/Developer/projects/greybox/menubar/Package.swift","/Users/saachi/Developer/projects/greybox/menubar/Package.resolved"]
+    outputs: ["<PackageStructure>"]
+    description: "Planning build"
+    allow-missing-inputs: true
+

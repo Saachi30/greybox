@@ -1,0 +1,60 @@
+# Greybox - local development / install compose file.
+# Two services only: Kali (scanning tools) + Backend (FastAPI orchestration).
+# Ollama runs on the host (see README) rather than as a third container -
+# it manages its own model downloads and GPU access better outside Docker.
+# No Postgres, no Redis, no Celery, no Nginx.
+
+services:
+  kali:
+    build:
+      context: ./security-core
+      dockerfile: Dockerfile.kali
+    image: greybox-kali:latest
+    container_name: greybox-kali
+    restart: unless-stopped
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
+    volumes:
+      - kali_workdir:/root/workdir
+    command: tail -f /dev/null
+    healthcheck:
+      test: ["CMD", "which", "nmap"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - greybox-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: greybox-backend:latest
+    container_name: greybox-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - GREYBOX_OLLAMA_HOST=http://host.docker.internal:11434
+      - KALI_CONTAINER_NAME=greybox-kali
+    env_file:
+      - .env
+    depends_on:
+      kali:
+        condition: service_healthy
+    volumes:
+      - ${HOME}/.greybox:/root/.greybox   # sessions/reports live on the host, not in the container
+      - /var/run/docker.sock:/var/run/docker.sock  # needed to `docker exec` into the Kali container
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - greybox-network
+
+networks:
+  greybox-network:
+    driver: bridge
+
+volumes:
+  kali_workdir:
+    driver: local
