@@ -1,2 +1,0 @@
-[console_scripts]
-greybox = greybox_cli.cli:main

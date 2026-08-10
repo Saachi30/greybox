@@ -1,0 +1,21 @@
+# Environment / secrets
+.env
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+docs/
+
+# Build / packaging
+build/
+dist/
+*.egg-info/
+
+# OS
+.DS_Store
+
+# Local Greybox data
+.greybox/
