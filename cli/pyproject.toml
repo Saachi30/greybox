@@ -1,6 +1,6 @@
 [project]
 name = "greybox-cli"
-version = "1.0.3"
+version = "1.0.4"
 description = "Local, natural-language pentesting assistant CLI"
 readme = "README.md"
 requires-python = ">=3.10"

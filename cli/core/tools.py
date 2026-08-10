@@ -28,6 +28,19 @@ class ToolArg:
     # doing so has produced real bugs (e.g. a model inventing "output_dir=.",
     # scattering results outside the expected scans directory and breaking the
     # httprobe/subdomain_enum auto-chaining that depends on predictable paths).
+    choices: list[str] | None = None
+    # If set, the value must be exactly one of these (e.g. whatweb aggression:
+    # ["1", "3", "4"] - there is no "2"). Enforced in build_argv AND exposed as
+    # a JSON-schema `enum` to the LLM, so the model is constrained at
+    # generation time instead of just failing after the fact inside the
+    # container. A prose description alone ("1 (passive) - 4 (aggressive)")
+    # reads as a continuous range to an LLM and does not prevent it from
+    # picking an invalid in-between value - that's exactly the whatweb bug.
+    multi: bool = False
+    # If True, the value is a comma-separated list of tokens (e.g. nikto's
+    # "4,6,8,b" tuning codes) and each token is validated against `choices`
+    # individually, rather than the whole value matching one entry in
+    # `choices`. Only meaningful when `choices` is also set.
 
 
 @dataclass
@@ -48,8 +61,30 @@ class Tool:
             if v is None and a.required:
                 raise ValueError(f"missing required argument: {a.name}")
             if v is not None:
+                if a.choices:
+                    self._validate_choice(a, str(v))
                 argv.append(str(v))
         return argv
+
+    @staticmethod
+    def _validate_choice(a: ToolArg, v: str) -> None:
+        """Raises ValueError if v (or, for multi-valued args, any token in v)
+        isn't in a.choices. Runs before the value ever reaches docker exec -
+        this is the actual enforcement point, not just LLM-side hinting."""
+        if a.multi:
+            tokens = [t.strip() for t in v.split(",") if t.strip()]
+            if not tokens:
+                raise ValueError(f"'{a.name}' must contain at least one of {a.choices}, got empty value")
+            bad = [t for t in tokens if t not in a.choices]
+            if bad:
+                raise ValueError(
+                    f"invalid value(s) for '{a.name}': {bad} — each must be one of {a.choices}"
+                )
+        else:
+            if v not in a.choices:
+                raise ValueError(
+                    f"invalid value for '{a.name}': {v!r} — must be one of {a.choices}"
+                )
 
     def example(self) -> str:
         parts = [self.script or self.name] + [
@@ -66,7 +101,10 @@ REGISTRY: dict[str, Tool] = {
         args=[
             ToolArg("target", "IP, hostname, or CIDR range"),
             ToolArg("output_dir", "where to write results", required=False, default="/root/workdir/scans", llm_controlled=False),
-            ToolArg("scan_type", "quick | full | vuln | comprehensive", required=False, default="quick"),
+            ToolArg(
+                "scan_type", "scan depth/type", required=False, default="quick",
+                choices=["quick", "full", "vuln", "comprehensive"],
+            ),
         ],
     ),
     "nikto": Tool(
@@ -76,7 +114,22 @@ REGISTRY: dict[str, Tool] = {
         args=[
             ToolArg("target", "full URL, e.g. https://example.com"),
             ToolArg("output_dir", "where to write results", required=False, default="/root/workdir/scans", llm_controlled=False),
-            ToolArg("tuning", "nikto tuning codes", required=False, default="4,6,8,b"),
+            ToolArg(
+                "tuning",
+                "comma-separated nikto tuning codes. Valid codes: "
+                "1=Interesting File, 2=Misconfig/Default File, 3=Info Disclosure, "
+                "4=Injection (XSS/Script/HTML), 5=Remote File Retrieval (in webroot), "
+                "6=Denial of Service, 7=Remote File Retrieval (server-wide), "
+                "8=Command Execution/Remote Shell, 9=SQL Injection, 0=File Upload, "
+                "a=Auth Bypass, b=Software ID, c=Remote Source Inclusion, "
+                "d=Web Service, e=Admin Console Login, x=Reverse (all except specified). "
+                "No other characters are valid.",
+                required=False,
+                default="4,6,8,b",
+                choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+                         "a", "b", "c", "d", "e", "x"],
+                multi=True,
+            ),
         ],
     ),
     "sqlmap": Tool(
@@ -86,8 +139,16 @@ REGISTRY: dict[str, Tool] = {
         args=[
             ToolArg("target", "URL including query string, e.g. https://example.com/page?id=1"),
             ToolArg("output_dir", "where to write results", required=False, default="/root/workdir/scans", llm_controlled=False),
-            ToolArg("level", "1-5 test depth", required=False, default="3"),
-            ToolArg("risk", "1-3 query risk", required=False, default="2"),
+            ToolArg(
+                "level", "test depth: higher levels test more parameters/payloads",
+                required=False, default="3",
+                choices=["1", "2", "3", "4", "5"],
+            ),
+            ToolArg(
+                "risk", "query risk: higher risk includes more intrusive payloads",
+                required=False, default="2",
+                choices=["1", "2", "3"],
+            ),
         ],
         destructive=True,
     ),
@@ -128,7 +189,10 @@ REGISTRY: dict[str, Tool] = {
         "Does not launch exploits - enumeration only.",
         script="metasploit_scan.sh",
         args=[
-            ToolArg("action", "scan | smb | ssh | web"),
+            ToolArg(
+                "action", "type of enumeration to run",
+                choices=["scan", "smb", "ssh", "web"],
+            ),
             ToolArg("target", "IP or hostname"),
             ToolArg("port", "specific port", required=False, default=""),
             ToolArg("output_dir", "where to write results", required=False, default="/root/workdir/scans", llm_controlled=False),
@@ -142,7 +206,14 @@ REGISTRY: dict[str, Tool] = {
         args=[
             ToolArg("target", "full URL, e.g. https://example.com"),
             ToolArg("output_dir", "where to write results", required=False, default="/root/workdir/scans", llm_controlled=False),
-            ToolArg("aggression", "1 (passive) - 4 (aggressive)", required=False, default="1"),
+            ToolArg(
+                "aggression",
+                "scan aggression level: 1=passive (stealthy, default), 3=aggressive, "
+                "4=heavy. There is no level 2 - whatweb only accepts 1, 3, or 4.",
+                required=False,
+                default="1",
+                choices=["1", "3", "4"],
+            ),
         ],
     ),
     "httprobe": Tool(
@@ -174,14 +245,29 @@ def tool_schema_for_llm() -> list[dict]:
     """OpenAI/Ollama-style function-calling schema built from the registry.
     Only args marked llm_controlled=True are exposed - output_dir and
     similar path-only args are never offered as something for the model
-    to fill in (see ToolArg.llm_controlled for why)."""
+    to fill in (see ToolArg.llm_controlled for why).
+
+    Args with `choices` set are exposed with a JSON-schema `enum`, so
+    compliant function-calling backends constrain generation to valid
+    values up front instead of relying on the prose description alone
+    (which is what let the whatweb "aggression=2" bug through originally -
+    "1 (passive) - 4 (aggressive)" reads as a continuous range to an LLM).
+    For multi-valued args (nikto tuning), the enum still describes the
+    valid individual tokens; build_argv is what actually enforces the
+    comma-separated combination at execution time.
+    """
     schema = []
     for tool in REGISTRY.values():
         controlled_args = [a for a in tool.args if a.llm_controlled]
-        props = {
-            a.name: {"type": "string", "description": a.description}
-            for a in controlled_args
-        }
+        props = {}
+        for a in controlled_args:
+            prop: dict = {"type": "string", "description": a.description}
+            if a.choices:
+                if a.multi:
+                    prop["description"] += f" (comma-separated combination of: {a.choices})"
+                else:
+                    prop["enum"] = a.choices
+            props[a.name] = prop
         required = [a.name for a in controlled_args if a.required]
         schema.append(
             {
