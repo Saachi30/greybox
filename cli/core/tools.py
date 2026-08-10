@@ -93,7 +93,7 @@ REGISTRY: dict[str, Tool] = {
     ),
     "subdomain_enum": Tool(
         name="subdomain_enum",
-        description="Passive subdomain discovery for a domain (subfinder + amass + theHarvester).",
+        description="Passive subdomain discovery for a domain (subfinder + theHarvester).",
         script="subdomain_enum.sh",
         args=[
             ToolArg("domain", "root domain, e.g. example.com"),

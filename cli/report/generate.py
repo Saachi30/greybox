@@ -7,6 +7,7 @@ rendering) works the same way.
 """
 from __future__ import annotations
 
+import os
 import re
 from copy import deepcopy
 from datetime import datetime
@@ -16,6 +17,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from core import llm
 from core.schema import Session
+from core.tools import REGISTRY as TOOL_REGISTRY
 
 TEMPLATE_DIR = Path(__file__).parent
 DEFAULT_OUTPUT_DIR = Path.home() / ".greybox" / "reports"
@@ -262,6 +264,8 @@ def build_report(session: Session, output_path: str | None = None) -> Path:
     for f in clean_session.findings:
         f.summary = _strip_ansi(f.summary or "")
 
+    tool_descriptions = {name: tool.description for name, tool in TOOL_REGISTRY.items()}
+
     env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)))
     template = env.get_template("template.html")
     html_str = template.render(
@@ -269,6 +273,7 @@ def build_report(session: Session, output_path: str | None = None) -> Path:
         summary=summary,
         analysis=analysis,
         severity_counts=severity_counts,
+        tool_descriptions=tool_descriptions,
         generated_at=datetime.now().strftime("%Y-%m-%d %H:%M"),
         backend_status=backend_status,
     )
@@ -280,6 +285,8 @@ def build_report(session: Session, output_path: str | None = None) -> Path:
 
     try:
         HTML(string=html_str).write_pdf(output_path)
+        os.chmod(output_path, 0o644)  # backend runs as root in the container - make sure the
+        # host's regular user can actually read the file it just wrote via the bind mount
     except OSError as e:
         raise RuntimeError(NATIVE_DEPS_HELP.strip()) from e
 

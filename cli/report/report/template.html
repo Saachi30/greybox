@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @page { margin: 2.5cm 2cm; }
+  body {
+    font-family: 'IBM Plex Mono', 'JetBrains Mono', monospace;
+    color: #1a1a1a;
+    font-size: 10.5pt;
+    line-height: 1.5;
+  }
+  h1 { font-size: 20pt; margin-bottom: 0; }
+  .subtitle { color: #666; font-size: 10pt; margin-top: 4px; }
+  h2 {
+    font-size: 13pt;
+    border-bottom: 2px solid #2b2b2b;
+    padding-bottom: 4px;
+    margin-top: 28px;
+  }
+  .meta-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  .meta-table td { padding: 4px 0; }
+  .meta-table td.label { color: #666; width: 160px; }
+  .summary {
+    background: #f4f4f4; padding: 14px 16px; border-left: 3px solid #2b2b2b;
+    white-space: pre-wrap; word-wrap: break-word; overflow-wrap: anywhere;
+  }
+  .sev-summary-bar { display: flex; gap: 8px; margin: 14px 0 4px; flex-wrap: wrap; }
+  .sev-chip {
+    display: inline-block; padding: 3px 10px; border-radius: 12px;
+    font-size: 8.5pt; font-weight: bold; color: #fff; text-transform: capitalize;
+  }
+  .sev-chip.sev-info { background: #6b7280; }
+  .sev-chip.sev-low { background: #16a34a; }
+  .sev-chip.sev-medium { background: #d97706; }
+  .sev-chip.sev-high { background: #dc2626; }
+  .sev-chip.sev-critical { background: #7f1d1d; }
+  .subhead { font-size: 11pt; margin: 18px 0 6px; color: #333; }
+  .methodology {
+    color: #333; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: anywhere;
+  }
+  table.analysis-findings { width: 100%; border-collapse: collapse; margin-top: 4px; }
+  table.analysis-findings td { padding: 5px 4px; border-bottom: 1px solid #eee; vertical-align: top; font-size: 9.5pt; }
+  td.af-sev { width: 80px; white-space: nowrap; }
+  td.af-text { word-wrap: break-word; overflow-wrap: anywhere; }
+  ol.fixes-list { margin: 6px 0 0; padding-left: 20px; font-size: 9.5pt; }
+  ol.fixes-list li { padding: 3px 0; word-wrap: break-word; overflow-wrap: anywhere; }
+  .finding {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-top: 14px;
+    overflow: hidden;
+    page-break-inside: avoid;
+  }
+  .finding-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f4f4f4;
+    padding: 8px 12px;
+    border-bottom: 1px solid #ddd;
+    font-size: 9.5pt;
+  }
+  .finding-tool { font-weight: bold; }
+  .finding-target { color: #555; }
+  .finding-time { color: #999; margin-left: auto; font-size: 8.5pt; }
+  .finding-explainer {
+    padding: 6px 14px; font-size: 8.5pt; color: #666; font-style: italic;
+    border-bottom: 1px solid #eee; background: #fafafa;
+  }
+  .finding-output {
+    padding: 12px 14px;
+    font-size: 9pt;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+    max-height: none;
+  }
+  .sev { display: inline-block; padding: 1px 8px; border-radius: 3px; font-size: 8.5pt; color: #fff; }
+  .sev-info { background: #6b7280; }
+  .sev-low { background: #16a34a; }
+  .sev-medium { background: #d97706; }
+  .sev-high { background: #dc2626; }
+  .sev-critical { background: #7f1d1d; }
+  footer { margin-top: 40px; font-size: 8pt; color: #999; }
+</style>
+</head>
+<body>
+
+  <h1>Greybox Assessment Report</h1>
+  <div class="subtitle">Generated {{ generated_at }}</div>
+
+  <table class="meta-table">
+    <tr><td class="label">Scope</td><td>{{ session.scope }}</td></tr>
+    <tr><td class="label">Session ID</td><td>{{ session.id }}</td></tr>
+    <tr><td class="label">Started</td><td>{{ session.created_at }}</td></tr>
+    <tr><td class="label">Checks run</td><td>{{ session.findings|length }}</td></tr>
+  </table>
+
+  {% if severity_counts %}
+  <div class="sev-summary-bar">
+    {% for item in severity_counts %}
+    <span class="sev-chip sev-{{ item.severity }}">{{ item.count }} {{ item.severity }}</span>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <h2>Executive Summary</h2>
+  <div class="summary">{{ summary }}</div>
+
+  {% if analysis.methodology or analysis.findings %}
+  <h2>Vulnerability Analysis</h2>
+
+  {% if analysis.methodology %}
+  <h3 class="subhead">Methodology</h3>
+  <p class="methodology">{{ analysis.methodology }}</p>
+  {% endif %}
+
+  {% if analysis.findings %}
+  <h3 class="subhead">Key Findings</h3>
+  <table class="analysis-findings">
+    {% for item in analysis.findings %}
+    <tr>
+      <td class="af-sev"><span class="sev sev-{{ item.severity }}">{{ item.severity }}</span></td>
+      <td class="af-text">{{ item.text }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+
+  {% if analysis.fixes %}
+  <h3 class="subhead">Recommended Fixes</h3>
+  <ol class="fixes-list">
+    {% for fix in analysis.fixes %}
+    <li>{{ fix }}</li>
+    {% endfor %}
+  </ol>
+  {% endif %}
+  {% endif %}
+
+  <h2>Findings</h2>
+  {% if session.findings %}
+    {% for f in session.findings %}
+    <div class="finding">
+      <div class="finding-header">
+        <span class="finding-tool">{{ f.tool }}</span>
+        <span class="finding-target">{{ f.target }}</span>
+        <span class="finding-time">{{ f.timestamp }}</span>
+      </div>
+      {% if tool_descriptions.get(f.tool) %}
+      <div class="finding-explainer">{{ tool_descriptions[f.tool] }}</div>
+      {% endif %}
+      <div class="finding-output">{{ f.summary or "(no output captured)" }}</div>
+    </div>
+    {% endfor %}
+  {% else %}
+  <p>No findings were logged for this session.</p>
+  {% endif %}
+
+  <footer>
+    Generated locally by greybox. Scan execution and target data never left
+    this machine. Report text was written by the
+    {{ backend_status.backend }} LLM backend ({{ backend_status.detail }}).
+  </footer>
+
+</body>
+</html>

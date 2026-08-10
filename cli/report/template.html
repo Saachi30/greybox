@@ -64,6 +64,10 @@
   .finding-tool { font-weight: bold; }
   .finding-target { color: #555; }
   .finding-time { color: #999; margin-left: auto; font-size: 8.5pt; }
+  .finding-explainer {
+    padding: 6px 14px; font-size: 8.5pt; color: #666; font-style: italic;
+    border-bottom: 1px solid #eee; background: #fafafa;
+  }
   .finding-output {
     padding: 12px 14px;
     font-size: 9pt;
@@ -141,9 +145,11 @@
       <div class="finding-header">
         <span class="finding-tool">{{ f.tool }}</span>
         <span class="finding-target">{{ f.target }}</span>
-        <span class="sev sev-{{ f.severity.value }}">{{ f.severity.value }}</span>
         <span class="finding-time">{{ f.timestamp }}</span>
       </div>
+      {% if tool_descriptions.get(f.tool) %}
+      <div class="finding-explainer">{{ tool_descriptions[f.tool] }}</div>
+      {% endif %}
       <div class="finding-output">{{ f.summary or "(no output captured)" }}</div>
     </div>
     {% endfor %}

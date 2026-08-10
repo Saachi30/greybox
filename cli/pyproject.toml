@@ -1,6 +1,6 @@
 [project]
 name = "greybox-cli"
-version = "0.1.0"
+version = "1.0.1"
 description = "Local, natural-language pentesting assistant CLI"
 requires-python = ">=3.10"
 dependencies = [
@@ -31,8 +31,9 @@ packages = ["greybox_cli", "core", "report"]
 
 [tool.setuptools.package-dir]
 greybox_cli = "greybox_cli"
-core = "../core"
-report = "../report"
+core = "core"
+report = "report"
+readme = "README.md"
 
 [tool.setuptools.package-data]
 report = ["template.html"]
