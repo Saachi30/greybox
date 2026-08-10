@@ -55,8 +55,8 @@ This package is intended for authorized security testing only. Only scan systems
 
 ## Links
 
-- **Source / issues:** https://github.com/YOUR_ORG/greybox
-- **Documentation:** https://github.com/YOUR_ORG/greybox#readme
+- **Source / issues:** https://github.com/Saachi30/greybox
+- **Documentation:** https://github.com/Saachi30/greybox#readme
 - **License:** MIT
 
 ---
