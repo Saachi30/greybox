@@ -1,281 +1,1436 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>greybox - local-first AI pentesting assistant</title>
-  <meta name="description"
-    content="A local-first, natural-language pentesting assistant. Scan execution never leaves your machine.">
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Greybox — Security testing, made simple.</title>
+
+  <meta
+    name="description"
+    content="Greybox is a local-first pentesting assistant that lets you check websites for vulnerabilities using plain English."
+  />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    :root {
+      --bg: #131417;
+      --bg-raised: #1a1c21;
+      --border: #2a2d34;
+      --text: #e7e8ec;
+      --text-muted: #8b8f9c;
+      --text-dim: #5b5f6a;
+      --chalk: #eceef2;
+
+      --sev-critical: #b3352f;
+      --sev-high: #c9782f;
+      --sev-medium: #b8942f;
+      --sev-low: #3f8f5f;
+
+      --radius: 3px;
+      --mono: "JetBrains Mono", ui-monospace, monospace;
+      --display: "Space Mono", ui-monospace, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .wrap {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ---------- mark ---------- */
+
+    .mark {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      position: relative;
+      vertical-align: -0.12em;
+    }
+
+    .mark svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* ---------- nav ---------- */
+
+    nav {
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: rgba(19, 20, 23, 0.92);
+      backdrop-filter: blur(6px);
+      z-index: 10;
+    }
+
+    nav .wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+    }
+
+    .logo {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .navlinks {
+      display: flex;
+      gap: 22px;
+      font-size: 13px;
+    }
+
+    .navlinks a {
+      text-decoration: none;
+      color: var(--text-muted);
+    }
+
+    .navlinks a:hover {
+      color: var(--text);
+    }
+
+    /* ---------- hero ---------- */
+
+    .hero {
+      padding: 76px 0 64px;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+      gap: 50px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 46px;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+      margin: 0 0 20px;
+    }
+
+    .lede {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 56ch;
+      margin: 0 0 28px;
+    }
+
+    .fact-line {
+      font-size: 14px;
+      padding: 14px 16px;
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-left: 2px solid var(--chalk);
+      border-radius: var(--radius);
+      max-width: 62ch;
+      margin-bottom: 32px;
+    }
+
+    .fact-line strong {
+      color: var(--text);
+    }
+
+    .cta-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--mono);
+      font-size: 13.5px;
+      font-weight: 500;
+      padding: 10px 18px;
+      border-radius: var(--radius);
+      text-decoration: none;
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--chalk);
+      color: #14151a;
+      border-color: var(--chalk);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--text-dim);
+    }
+
+    /* ---------- rotating cube ---------- */
+
+    .hero-visual {
+      min-height: 330px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .cube-scene {
+      width: 270px;
+      height: 270px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      perspective: 900px;
+    }
+
+    .greybox-ring {
+      position: absolute;
+      width: 270px;
+      height: 270px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      animation: ring-spin 22s linear infinite;
+    }
+
+    .greybox-ring::before,
+    .greybox-ring::after {
+      content: "";
+      position: absolute;
+      inset: 20px;
+      border: 1px dashed var(--border);
+      border-radius: 50%;
+    }
+
+    .greybox-ring::after {
+      inset: 54px;
+      border-style: solid;
+      opacity: 0.55;
+    }
+
+    .cube {
+      width: 140px;
+      height: 140px;
+      position: relative;
+      transform-style: preserve-3d;
+      animation: cube-spin 16s linear infinite;
+    }
+
+    .cube__face {
+      position: absolute;
+      inset: 0;
+      width: 140px;
+      height: 140px;
+      background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.055),
+        rgba(255, 255, 255, 0.012)
+      );
+      border: 1px solid #4b4f58;
+      box-shadow: inset 0 0 46px rgba(255, 255, 255, 0.02);
+      backface-visibility: hidden;
+    }
+
+    .cube__face::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 16px;
+      height: 16px;
+      transform: translate(-50%, -50%);
+      border: 1px solid #6a6e78;
+      opacity: 0.5;
+    }
+
+    .cube__face--front {
+      transform: translateZ(70px);
+    }
+
+    .cube__face--back {
+      transform: rotateY(180deg) translateZ(70px);
+    }
+
+    .cube__face--right {
+      transform: rotateY(90deg) translateZ(70px);
+    }
+
+    .cube__face--left {
+      transform: rotateY(-90deg) translateZ(70px);
+    }
+
+    .cube__face--top {
+      transform: rotateX(90deg) translateZ(70px);
+    }
+
+    .cube__face--bottom {
+      transform: rotateX(-90deg) translateZ(70px);
+    }
+
+    .greybox-caption {
+      position: absolute;
+      bottom: 8px;
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    @keyframes cube-spin {
+      from {
+        transform: rotateX(-18deg) rotateY(0deg);
+      }
+      to {
+        transform: rotateX(-18deg) rotateY(360deg);
+      }
+    }
+
+    @keyframes ring-spin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ---------- sections ---------- */
+
+    section {
+      padding: 56px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    section:last-of-type {
+      border-bottom: none;
+    }
+
+    h2 {
+      font-family: var(--display);
+      font-size: 22px;
+      margin: 0 0 8px;
+    }
+
+    .section-sub {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin: 0 0 32px;
+      max-width: 65ch;
+    }
+
+    /* ---------- how it works ---------- */
+
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: 16px;
+      padding: 20px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .step:last-child {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .step-mark {
+      width: 22px;
+      height: 22px;
+      margin-top: 2px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+
+    .step h3 {
+      margin: 0 0 6px;
+      font-size: 15px;
+      font-family: var(--mono);
+      font-weight: 700;
+    }
+
+    .step p {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 14px;
+      max-width: 72ch;
+    }
+
+    /* ---------- ollama ---------- */
+
+    .ollama-box {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+    }
+
+    .ollama-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+
+    .ollama-column h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      font-family: var(--mono);
+    }
+
+    .ollama-column p {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 13.5px;
+    }
+
+    .ollama-label {
+      display: inline-block;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+      padding: 4px 7px;
+      margin-bottom: 14px;
+    }
+
+    .terminal {
+      background: #101114;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 15px 17px;
+      margin-top: 24px;
+      overflow-x: auto;
+    }
+
+    .terminal code {
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      white-space: pre;
+    }
+
+    .comment {
+      color: var(--text-dim);
+    }
+
+    /* ---------- install ---------- */
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      background: var(--bg-raised);
+      color: var(--text-muted);
+      border-radius: var(--radius);
+      cursor: pointer;
+    }
+
+    .tab.active {
+      color: var(--text);
+      border-color: var(--text-dim);
+    }
+
+    .tab[data-detected]::after {
+      content: " — detected";
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .install-panel {
+      display: none;
+    }
+
+    .install-panel.active {
+      display: block;
+    }
+
+    .code-block {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      font-size: 13.5px;
+      overflow-x: auto;
+      position: relative;
+      margin-bottom: 8px;
+    }
+
+    .code-block code {
+      white-space: pre;
+    }
+
+    .code-actions {
+      display: flex;
+      gap: 16px;
+      font-size: 12.5px;
+      margin-bottom: 20px;
+    }
+
+    .code-actions button {
+      font-family: var(--mono);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .code-actions button:hover {
+      color: var(--text);
+    }
+
+    .install-note {
+      font-size: 13px;
+      color: var(--text-muted);
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      margin-bottom: 20px;
+    }
+
+    /* ---------- requirements ---------- */
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--text-dim);
+      font-weight: 500;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+    }
+
+    td.muted {
+      color: var(--text-muted);
+    }
+
+    /* ---------- security ---------- */
+
+    .trust-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .trust-list li {
+      padding: 16px 0;
+      border-top: 1px solid var(--border);
+      font-size: 14px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 12px;
+    }
+
+    .trust-list li strong {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .trust-list .tick {
+      color: var(--sev-low);
+      flex-shrink: 0;
+    }
+
+    /* ---------- coming soon ---------- */
+
+    .coming-soon {
+      border: 1px solid var(--border);
+      background: var(--bg-raised);
+      padding: 24px;
+      border-radius: var(--radius);
+    }
+
+    .coming-label {
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-size: 10px;
+      margin-bottom: 10px;
+    }
+
+    .coming-soon h3 {
+      margin: 0 0 8px;
+      font-family: var(--display);
+      font-size: 18px;
+    }
+
+    .coming-soon p {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 14px;
+      max-width: 70ch;
+    }
+
+    /* ---------- feedback ---------- */
+
+    .feedback {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      padding: 28px;
+      border-radius: var(--radius);
+    }
+
+    .feedback p {
+      color: var(--text-muted);
+      max-width: 65ch;
+      font-size: 14px;
+    }
+
+    /* ---------- footer ---------- */
+
+    footer {
+      padding: 32px 0 60px;
+    }
+
+    footer .wrap {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 12.5px;
+      color: var(--text-dim);
+    }
+
+    footer a {
+      color: var(--text-dim);
+    }
+
+    footer a:hover {
+      color: var(--text-muted);
+    }
+
+    /* ---------- responsive ---------- */
+
+    @media (max-width: 760px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-visual {
+        min-height: 260px;
+        order: -1;
+      }
+
+      .cube-scene {
+        transform: scale(0.78);
+      }
+
+      .ollama-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .navlinks {
+        gap: 10px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      h1 {
+        font-size: 30px;
+      }
+
+      .hero {
+        padding-top: 48px;
+      }
+
+      .step {
+        grid-template-columns: 28px 1fr;
+      }
+
+      .trust-list {
+        grid-template-columns: 1fr;
+      }
+
+      table,
+      thead,
+      tbody,
+      th,
+      td,
+      tr {
+        display: block;
+      }
+
+      thead {
+        display: none;
+      }
+
+      td {
+        border-bottom: none;
+        padding: 4px 0;
+      }
+
+      tr {
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      td::before {
+        content: attr(data-label);
+        display: block;
+        color: var(--text-dim);
+        font-size: 11px;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+      }
+
+      .navlinks a:nth-child(2),
+      .navlinks a:nth-child(3) {
+        display: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      .cube,
+      .greybox-ring {
+        animation: none;
+      }
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--chalk);
+      outline-offset: 2px;
+    }
+  </style>
 </head>
 
 <body>
 
+  <!-- NAV -->
   <nav>
     <div class="wrap">
-      <a class="logo" href="#top">
-        <span class="mark"><svg viewBox="0 0 20 20">
-            <rect x="1" y="1" width="8.5" height="18" fill="#e7e8ec" />
-            <rect x="10.5" y="1" width="8.5" height="18" fill="none" stroke="#e7e8ec" stroke-width="1.5" />
-          </svg></span>
+      <a href="#" class="logo">
+        <span class="mark">
+          <svg viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="3" width="8" height="8" fill="#e7e8ec"/>
+            <rect x="13" y="3" width="8" height="8" stroke="#8b8f9c"/>
+            <rect x="3" y="13" width="8" height="8" stroke="#8b8f9c"/>
+            <rect x="13" y="13" width="8" height="8" fill="#e7e8ec"/>
+          </svg>
+        </span>
         greybox
       </a>
+
       <div class="navlinks">
         <a href="#install">Install</a>
         <a href="#requirements">Requirements</a>
-        <a href="#trust">Security</a>
-        <a href="https://github.com/Saachi30/greybox/blob/main/docs/RUNBOOK.md">Docs</a>
-        <a href="https://github.com/Saachi30/greybox">GitHub</a>
+        <a href="#security">Security</a>
+        <a href="#docs">Docs</a>
+        <a href="https://github.com/YOUR_ORG/greybox">GitHub</a>
       </div>
     </div>
   </nav>
 
-  <header class="hero" id="top">
-    <div class="wrap">
-      <div class="eyebrow">local-first pentesting assistant</div>
-      <h1>Type what you want to check.<br>It proposes the command. You confirm.</h1>
-      <p class="lede">
-        One command runs a full recon sweep - subdomains, ports, web
-        vulnerabilities - in an isolated Kali container, entirely on your own
-        machine. The report comes back organized by severity, with a plain-
-        English fix for each finding, not a wall of raw scanner text.
-      </p>
-      <p class="lede">
-        Prefer granular control? <code>greybox ask "check open ports"</code>
-        works the same way, one tool at a time - your call.
-      </p>
-      <div class="fact-line">
-        <strong>Scan execution never leaves your machine.</strong>
-        The only thing that can optionally go anywhere else is text -
-        parsed findings sent for report-writing, and only if you turn that
-        on yourself. Off by default.
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="wrap hero-grid">
+
+      <div>
+        <div class="eyebrow">Local-first security testing</div>
+
+        <h1>
+          Security testing,<br />
+          made simple.
+        </h1>
+
+        <p class="lede">
+          Check your website for vulnerabilities without needing to be a
+          pentesting expert. Tell Greybox what you want to check in plain
+          English, review what it proposes, and run the test on your own
+          machine.
+        </p>
+
+        <div class="fact-line">
+          <strong>Greybox runs the actual security tools locally.</strong>
+          Your target, scan traffic, and raw results stay on your machine.
+          You decide what runs before anything is executed.
+        </div>
+
+        <div class="cta-row">
+          <a class="btn btn-primary" href="#install">
+            Install greybox
+          </a>
+
+          <a
+            class="btn btn-ghost"
+            href="https://github.com/YOUR_ORG/greybox"
+          >
+            View source
+          </a>
+        </div>
       </div>
-      <div class="cta-row">
-        <a class="btn btn-primary" href="#install">Install greybox</a>
-        <a class="btn btn-ghost" href="https://github.com/Saachi30/greybox">View source</a>
+
+
+      <!-- ROTATING CUBE -->
+      <div class="hero-visual">
+        <div class="cube-scene">
+
+          <div class="greybox-ring"></div>
+
+          <div class="cube">
+            <div class="cube__face cube__face--front"></div>
+            <div class="cube__face cube__face--back"></div>
+            <div class="cube__face cube__face--right"></div>
+            <div class="cube__face cube__face--left"></div>
+            <div class="cube__face cube__face--top"></div>
+            <div class="cube__face cube__face--bottom"></div>
+          </div>
+
+          <div class="greybox-caption">
+            local · controlled · transparent
+          </div>
+
+        </div>
       </div>
+
     </div>
   </header>
 
-  <section id="how">
+
+  <!-- HOW IT WORKS -->
+  <section id="how-it-works">
     <div class="wrap">
+
       <h2>How it works</h2>
-      <p class="section-sub">One command for a full first-pass assessment, or granular control one tool at a time - your
-        call. Nothing runs without your yes either way.</p>
+
+      <p class="section-sub">
+        You don't need to know which security tool to use for every check.
+        Greybox connects your request to the appropriate tools and shows you
+        what it intends to run before doing anything.
+      </p>
+
       <div class="steps">
+
         <div class="step">
-          <svg class="step-mark" viewBox="0 0 20 20">
-            <rect x="1" y="1" width="8.5" height="18" fill="#e7e8ec" />
-            <rect x="10.5" y="1" width="8.5" height="18" fill="none" stroke="#e7e8ec" stroke-width="1.5" />
-          </svg>
+          <div class="step-mark">01</div>
+
           <div>
-            <h3>Run the full sweep, or ask for one thing at a time</h3>
-            <p><code>greybox scan example.com</code> runs a complete non-destructive recon sweep - subdomains, live
-              hosts, tech fingerprinting, ports, web vulnerabilities - end to end. Or use
-              <code>greybox ask "check open ports"</code> for one tool at a time, if that's what you want instead. Every
-              proposed command is shown and confirmed before it runs, either way.</p>
-          </div>
-        </div>
-        <div class="step">
-          <svg class="step-mark" viewBox="0 0 20 20">
-            <rect x="1" y="1" width="8.5" height="18" fill="#e7e8ec" />
-            <rect x="10.5" y="1" width="8.5" height="18" fill="none" stroke="#e7e8ec" stroke-width="1.5" />
-          </svg>
-          <div>
-            <h3>Findings are tagged by severity, not just dumped as raw output</h3>
-            <p>The local model reads what each tool actually found and organizes it: a plain-language methodology
-              section, a severity-tagged list of real findings (critical/high/medium/low/info), and a concrete fix for
-              each one - not a wall of unlabeled scanner text.</p>
-          </div>
-        </div>
-        <div class="step">
-          <svg class="step-mark" viewBox="0 0 20 20">
-            <rect x="1" y="1" width="8.5" height="18" fill="#e7e8ec" />
-            <rect x="10.5" y="1" width="8.5" height="18" fill="none" stroke="#e7e8ec" stroke-width="1.5" />
-          </svg>
-          <div>
-            <h3>Get a report</h3>
-            <p>Generated automatically at the end of <code>greybox scan</code>, or on demand with
-              <code>greybox report generate &lt;session&gt;</code> - a PDF with the executive summary, the
-              severity-tagged findings and fixes, and every raw result underneath, written by a local model by default.
+            <h3>Declare your target</h3>
+
+            <p>
+              Start by defining the website or system you're authorized to
+              test. Greybox keeps subsequent testing inside that declared
+              scope.
             </p>
           </div>
         </div>
+
+
+        <div class="step">
+          <div class="step-mark">02</div>
+
+          <div>
+            <h3>Ask what you want to check</h3>
+
+            <p>
+              Instead of remembering commands, describe the check in plain
+              English — for example, "check the open ports" or "find the
+              technologies this website is using."
+            </p>
+          </div>
+        </div>
+
+
+        <div class="step">
+          <div class="step-mark">03</div>
+
+          <div>
+            <h3>Review before execution</h3>
+
+            <p>
+              Greybox shows the proposed security command before running it.
+              Nothing executes without an explicit confirmation.
+            </p>
+          </div>
+        </div>
+
+
+        <div class="step">
+          <div class="step-mark">04</div>
+
+          <div>
+            <h3>Run locally and collect the results</h3>
+
+            <p>
+              The actual scanning tools run through the local Greybox
+              environment. Results are stored locally and can be turned into
+              a report.
+            </p>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
 
+
+  <!-- OLLAMA -->
+  <section id="ollama">
+    <div class="wrap">
+
+      <h2>Optional local AI with Ollama</h2>
+
+      <p class="section-sub">
+        Greybox can work without an LLM. If you want better natural-language
+        understanding and richer report writing, you can add Ollama and run
+        the models locally on your own machine.
+      </p>
+
+
+      <div class="ollama-box">
+
+        <div class="ollama-grid">
+
+          <div class="ollama-column">
+
+            <div class="ollama-label">Without Ollama</div>
+
+            <h3>Greybox still works.</h3>
+
+            <p>
+              You can declare a target, run supported checks, perform the
+              standard recon sweep, and generate reports without installing
+              an AI model.
+            </p>
+
+          </div>
+
+
+          <div class="ollama-column">
+
+            <div class="ollama-label">With Ollama</div>
+
+            <h3>More natural interaction.</h3>
+
+            <p>
+              Ollama adds local language-model inference for requests that
+              need more flexible intent understanding and for AI-written
+              report summaries and vulnerability explanations.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="terminal">
+          <code><span class="comment"># Install Ollama, then:</span>
+
+ollama serve
+
+<span class="comment"># Smaller model — intent parsing</span>
+ollama pull llama3.2:3b
+
+<span class="comment"># Larger model — report writing</span>
+ollama pull llama3.1:8b</code>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- INSTALL -->
   <section id="install">
     <div class="wrap">
+
       <h2>Install</h2>
+
       <p class="section-sub">
-        The CLI installs with no Docker required and works immediately -
-        dry-run intent parsing, plus the two tools that need no scanning
-        engine at all (email discovery, certificate-transparency lookups).
-        The full Kali/local-LLM engine is a separate step you run when
-        you're ready.
+        Start with the Greybox CLI. The full scanning engine is set up
+        separately because the security tools run inside a Dockerized Kali
+        environment.
       </p>
 
-      <div class="tabs" id="os-tabs">
-        <button class="tab" data-os="linux">Linux</button>
-        <button class="tab" data-os="mac">macOS</button>
-        <button class="tab" data-os="windows">Windows</button>
+
+      <div class="tabs">
+
+        <button class="tab" data-os="mac">
+          macOS
+        </button>
+
+        <button class="tab" data-os="windows">
+          Windows
+        </button>
+
+        <button class="tab" data-os="linux">
+          Linux
+        </button>
+
       </div>
 
-      <div class="install-panel" id="panel-linux">
-        <div class="code-block"><code>curl -fsSL https://&lt;host&gt;/install.sh -o install.sh
-bash install.sh</code></div>
-        <div class="code-actions">
-          <a href="https://github.com/Saachi30/greybox/blob/main/install.sh" target="_blank">view script before running
-            it</a>
-          <button onclick="copyBlock(this)" data-target="panel-linux">copy</button>
-        </div>
-        <div class="install-note">
-          Installs the CLI first (no Docker needed for that step), then asks
-          separately whether to set up the full scanning engine.
-        </div>
-      </div>
 
+      <!-- MAC -->
       <div class="install-panel" id="panel-mac">
-        <div class="code-block"><code>brew tap Saachi30/greybox
-brew install greybox
-<section id="menubar-status">
-  <div class="wrap">
-    <h2>macOS menu bar app</h2>
-    <p class="section-sub">
-      In development, not yet released. The CLI already does everything
-      the menu bar app will do - this is a convenience layer on top of it
-      for quick checks without opening a terminal. Coming in a future
-      update.
-    </p>
-  </div>
-</section>
-brew install --cask greybox-menubar   # optional: menu bar companion</code></div>
+
+        <div class="code-block">
+          <code>pipx install greybox-cli</code>
+        </div>
+
         <div class="code-actions">
-          <a href="https://github.com/Saachi30/greybox/blob/main/packaging/homebrew/greybox.rb" target="_blank">view
-            formula</a>
-          <button onclick="copyBlock(this)" data-target="panel-mac">copy</button>
+          <button
+            data-target="panel-mac"
+            onclick="copyBlock(this)"
+          >
+            copy
+          </button>
         </div>
+
         <div class="install-note">
-          Apple Silicon's unified memory makes even 8B-class local report
-          models usably fast without a discrete GPU - a real advantage for
-          Mac specifically. Or use the plain install script:
-          <code>curl -fsSL https://&lt;host&gt;/install.sh -o install.sh &amp;&amp; bash install.sh</code>
+          Then make sure Docker Desktop is installed and running, and run:
         </div>
+
+        <div class="code-block">
+          <code>greybox setup</code>
+        </div>
+
+        <div class="install-note">
+          Ollama is optional. Install it separately if you want local AI
+          assistance.
+        </div>
+
       </div>
 
+
+      <!-- WINDOWS -->
       <div class="install-panel" id="panel-windows">
-        <div class="code-block"><code>irm https://&lt;host&gt;/install.ps1 -OutFile install.ps1
-.\install.ps1</code></div>
+
+        <div class="code-block">
+          <code>py -m pip install greybox-cli</code>
+        </div>
+
         <div class="code-actions">
-          <a href="https://github.com/Saachi30/greybox/blob/main/install.ps1" target="_blank">view script before running
-            it</a>
-          <button onclick="copyBlock(this)" data-target="panel-windows">copy</button>
+          <button
+            data-target="panel-windows"
+            onclick="copyBlock(this)"
+          >
+            copy
+          </button>
         </div>
+
         <div class="install-note">
-          The full scanning engine needs WSL2, which can require a reboot to
-          enable - the script tells you this before doing anything, never
-          as a surprise. Installing just the CLI doesn't need WSL2 at all.
+          Install Docker Desktop with WSL2 enabled, launch Docker Desktop,
+          then run:
         </div>
+
+        <div class="code-block">
+          <code>greybox setup</code>
+        </div>
+
+        <div class="install-note">
+          Windows users need WSL2 + Docker Desktop for the full Kali
+          scanning engine. The CLI itself does not require Docker.
+        </div>
+
       </div>
 
-      <p class="cli-only-link">
-        Just evaluating? <code>pipx install greybox-cli</code> gets you the
-        CLI alone, zero Docker footprint, works in dry-run/intent-parsing
-        mode immediately.
+
+      <!-- LINUX -->
+      <div class="install-panel" id="panel-linux">
+
+        <div class="code-block">
+          <code>pipx install greybox-cli</code>
+        </div>
+
+        <div class="code-actions">
+          <button
+            data-target="panel-linux"
+            onclick="copyBlock(this)"
+          >
+            copy
+          </button>
+        </div>
+
+        <div class="install-note">
+          Install Docker, make sure the Docker daemon is running, then:
+        </div>
+
+        <div class="code-block">
+          <code>greybox setup</code>
+        </div>
+
+      </div>
+
+
+      <p style="margin-top: 24px; color: var(--text-muted); font-size: 13.5px;">
+        After setup:
       </p>
+
+      <div class="code-block">
+        <code>greybox scope example.com
+greybox ask "check open ports"
+greybox scan example.com
+greybox report generate &lt;session-id&gt;</code>
+      </div>
+
     </div>
   </section>
 
+
+  <!-- REQUIREMENTS -->
   <section id="requirements">
     <div class="wrap">
-      <h2>Requirements</h2>
-      <p class="section-sub">Actual numbers, not vague tiers - so you know before you start a multi-GB download whether
-        this fits your machine.</p>
+
+      <h2>What you need</h2>
+
+      <p class="section-sub">
+        Greybox separates the lightweight CLI from the heavier security
+        execution environment.
+      </p>
+
       <table>
+
         <thead>
           <tr>
-            <th>Tier</th>
-            <th>RAM</th>
-            <th>Disk</th>
-            <th>GPU</th>
-            <th>Notes</th>
+            <th>Component</th>
+            <th>Required?</th>
+            <th>Purpose</th>
           </tr>
         </thead>
+
         <tbody>
+
           <tr>
-            <td data-label="Tier">CLI only</td>
-            <td data-label="RAM" class="muted">2GB free</td>
-            <td data-label="Disk" class="muted">~200MB</td>
-            <td data-label="GPU" class="muted">none</td>
-            <td data-label="Notes" class="muted">pipx install, dry-run / intent-parsing only, no Docker</td>
+            <td data-label="Component">Python 3.10+</td>
+            <td data-label="Required?">Yes</td>
+            <td data-label="Purpose" class="muted">
+              Runs the Greybox CLI.
+            </td>
           </tr>
+
           <tr>
-            <td data-label="Tier">Minimum (full engine, CPU-only)</td>
-            <td data-label="RAM" class="muted">8GB total system RAM</td>
-            <td data-label="Disk" class="muted">~14GB free</td>
-            <td data-label="GPU" class="muted">none</td>
-            <td data-label="Notes" class="muted">Kali image (~3-4GB, includes Metasploit) + llama3.2:3b (~2GB) for CLI
-              intent parsing - usable, not fast</td>
+            <td data-label="Component">Docker</td>
+            <td data-label="Required?">For full scans</td>
+            <td data-label="Purpose" class="muted">
+              Runs the isolated Kali security environment.
+            </td>
           </tr>
+
           <tr>
-            <td data-label="Tier">Recommended (local report writing)</td>
-            <td data-label="RAM" class="muted">16GB total system RAM</td>
-            <td data-label="Disk" class="muted">~20GB free</td>
-            <td data-label="GPU" class="muted">8GB+ VRAM helps, not required on Apple Silicon</td>
-            <td data-label="Notes" class="muted">adds llama3.1:8b (~4.7GB) for report writing at acceptable speed</td>
+            <td data-label="Component">Ollama</td>
+            <td data-label="Required?">Optional</td>
+            <td data-label="Purpose" class="muted">
+              Provides local LLM inference for natural-language understanding
+              and report writing.
+            </td>
           </tr>
+
           <tr>
-            <td data-label="Tier">Below minimum</td>
-            <td data-label="RAM" class="muted">-</td>
-            <td data-label="Disk" class="muted">-</td>
-            <td data-label="GPU" class="muted">-</td>
-            <td data-label="Notes" class="muted">use hosted inference for report writing only; intent parsing still
-              needs the ~2GB tier locally</td>
+            <td data-label="Component">Kali tools</td>
+            <td data-label="Required?">Via Docker</td>
+            <td data-label="Purpose" class="muted">
+              Performs the actual security and reconnaissance checks.
+            </td>
           </tr>
+
         </tbody>
+
       </table>
+
     </div>
   </section>
 
-  <section id="trust">
+
+  <!-- SECURITY -->
+  <section id="security">
     <div class="wrap">
-      <h2>What's local, what's optional</h2>
-      <p class="section-sub">Concrete, not reassuring-in-the-abstract - this is the part worth actually reading before
-        you run anything.</p>
+
+      <h2>Designed to stay local</h2>
+
+      <p class="section-sub">
+        Greybox is built around the idea that security testing data should
+        remain under the tester's control.
+      </p>
+
       <ul class="trust-list">
-        <li><span class="tick">&#10003;</span><span><strong>Scan execution is never remote.</strong> The Kali container
-            and the tools it runs (nmap, sqlmap, etc.) always run on your own machine, against targets you declared.
-            Your target's logs show your IP, not a third party's.</span></li>
-        <li><span class="tick">&#10003;</span><span><strong>Hosted inference, if you enable it, only ever sees parsed
-              findings</strong> - never raw scan traffic, and it never runs a scan itself. It's off by default; turning
-            it on is a deliberate step, not a default you have to opt out of.</span></li>
-        <li><span class="tick">&#10003;</span><span><strong>No account required.</strong> Nothing here is gated behind a
-            login.</span></li>
-        <li><span class="tick">&#10003;</span><span><strong>No telemetry by default.</strong> If you or a self-hosted
-            instance turns on the optional install counter, it records a random instance ID and a ping count - nothing
-            else, and it's documented in <a
-              href="https://github.com/Saachi30/greybox/blob/main/core/telemetry.py">core/telemetry.py</a>.</span></li>
-        <li><span class="tick">&#10003;</span><span><strong>Source is public.</strong> Every install script linked above
-            has a "view script" link right next to the copy button - not buried in a footer.</span></li>
-        <li><span class="tick">&#10003;</span><span><strong>Permissions are named up front.</strong> Docker access for
-            the CLI/backend; macOS Automation permission for the menu bar app, requested only when you click "scan this
-            site," never before.</span></li>
+
+        <li>
+          <span class="tick">✓</span>
+          <span>
+            <strong>Scan traffic stays local.</strong>
+            Security tools run on your own machine.
+          </span>
+        </li>
+
+        <li>
+          <span class="tick">✓</span>
+          <span>
+            <strong>No cloud LLM required.</strong>
+            Ollama can run the language models locally.
+          </span>
+        </li>
+
+        <li>
+          <span class="tick">✓</span>
+          <span>
+            <strong>Explicit confirmation.</strong>
+            Proposed commands are shown before execution.
+          </span>
+        </li>
+
+        <li>
+          <span class="tick">✓</span>
+          <span>
+            <strong>Local session storage.</strong>
+            Findings and sessions are stored locally.
+          </span>
+        </li>
+
+        <li>
+          <span class="tick">✓</span>
+          <span>
+            <strong>Scope enforcement.</strong>
+            Requests outside the declared target are refused.
+          </span>
+        </li>
+
+        <li>
+          <span class="tick">✓</span>
+          <span>
+            <strong>No default telemetry.</strong>
+            Optional analytics are disabled unless explicitly enabled.
+          </span>
+        </li>
+
       </ul>
+
     </div>
   </section>
 
+
+  <!-- MENU BAR -->
+  <section id="menubar">
+    <div class="wrap">
+
+      <div class="coming-soon">
+
+        <div class="coming-label">
+          Coming soon
+        </div>
+
+        <h3>macOS menu bar companion</h3>
+
+        <p>
+          A native macOS companion is currently in development. The goal is
+          to let you quickly check the website you're browsing without
+          opening a terminal — while keeping the actual security testing
+          local to your machine.
+        </p>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- FEEDBACK -->
+  <section id="docs">
+    <div class="wrap">
+
+      <div class="feedback">
+
+        <h2>Try it and tell me what breaks.</h2>
+
+        <p>
+          Greybox is an early release. If you use it, feedback on setup,
+          scans, reports, supported systems, and anything that feels
+          confusing is genuinely useful.
+        </p>
+
+        <div class="cta-row">
+
+          <a
+            class="btn btn-primary"
+            href="https://github.com/YOUR_ORG/greybox/issues"
+          >
+            Give feedback
+          </a>
+
+          <a
+            class="btn btn-ghost"
+            href="https://github.com/YOUR_ORG/greybox"
+          >
+            GitHub
+          </a>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- FOOTER -->
   <footer>
     <div class="wrap">
-      <span>MIT licensed</span>
-      <span><a href="https://github.com/Saachi30/greybox/releases">Releases</a></span>
-      <span><a href="https://github.com/Saachi30/greybox/blob/main/docs/RUNBOOK.md">Documentation</a></span>
-      <span><a href="https://github.com/Saachi30/greybox">Source</a></span>
+
+      <span>
+        greybox — local-first security testing
+      </span>
+
+      <span>
+        Only test systems you own or are explicitly authorized to test.
+      </span>
+
     </div>
   </footer>
 
-  <script src="script.js"></script>
-</body>
 
+  <script>
+    const tabs = document.querySelectorAll(".tab");
+    const panels = document.querySelectorAll(".install-panel");
+
+    function activate(osKey) {
+      tabs.forEach((t) => {
+        t.classList.toggle("active", t.dataset.os === osKey);
+      });
+
+      panels.forEach((p) => {
+        p.classList.toggle(
+          "active",
+          p.id === "panel-" + osKey
+        );
+      });
+    }
+
+    function detectOS() {
+      const ua = navigator.userAgent || "";
+
+      if (/Windows/i.test(ua)) return "windows";
+      if (/Mac OS X|Macintosh/i.test(ua)) return "mac";
+
+      return "linux";
+    }
+
+    const detected = detectOS();
+
+    tabs.forEach((t) => {
+
+      if (t.dataset.os === detected) {
+        t.setAttribute("data-detected", "");
+      }
+
+      t.addEventListener("click", () => {
+        activate(t.dataset.os);
+      });
+
+    });
+
+    activate(detected);
+
+
+    window.copyBlock = function(button) {
+
+      const panel = document.getElementById(button.dataset.target);
+      const code = panel.querySelector("code").innerText;
+
+      navigator.clipboard.writeText(code).then(() => {
+
+        const original = button.textContent;
+
+        button.textContent = "copied";
+
+        setTimeout(
+          () => (button.textContent = original),
+          1500
+        );
+
+      });
+
+    };
+  </script>
+
+</body>
 </html>
