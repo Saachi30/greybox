@@ -1,145 +1,178 @@
-# Greybox
+# greybox
 
-A local-first, natural-language pentesting assistant. Dockerized Kali tools,
-a local LLM (Ollama) instead of a cloud API, and a CLI you talk to in plain
-English.
+**Security testing, made simple.**
 
-Nothing about a target ever leaves your machine.
+Greybox is a local-first pentesting assistant. Describe what you want to check in plain English, review the exact command it proposes, and let it run the real security tools on your own machine — nothing leaves your machine unless you decide to share it.
 
-## What's here
+[![PyPI](https://img.shields.io/pypi/v/greybox-cli)](https://pypi.org/project/greybox-cli/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 
-```
-greybox/
-  security-core/   Dockerized Kali + tool wrapper scripts
-  core/            shared logic: tool registry, session schema, LLM client, OSINT API tools
-  cli/             the `greybox` command - installs standalone, no Docker required
-  backend/         minimal FastAPI orchestration layer (no database)
-  report/          PDF report generation from a session's findings
-  telemetry/       optional, opt-in, anonymous install counter (separate service)
-  menubar/         macOS menu bar companion (Swift Package, builds on macOS only)
-  packaging/       Homebrew formula/cask templates for distribution
-  website/         static landing page (install, requirements, trust/security)
-  docs/            RUNBOOK.md (run/deploy steps) + TESTING.md (pre-release checklist)
-  docker-compose.yml
-  install.sh       Linux/macOS installer
-  install.ps1      Windows installer (its own script, not a bash port)
-```
+> Only test systems you own or are explicitly authorized to test. See [Legal & ethical use](#legal--ethical-use).
 
-Full step-by-step instructions to run everything locally and deploy the
-optional pieces are in **`docs/RUNBOOK.md`**. `docs/TESTING.md` tracks
-what's actually been verified vs. what still needs a real machine
-(macOS/Windows builds couldn't be tested in the environment this was
-built in) - read that before assuming everything works everywhere.
+---
 
-## Install is staged on purpose
+## Table of contents
 
-Installing the `greybox` CLI never requires Docker. It works standalone -
-`pipx install ./cli` or `curl ... | bash` - and gives you dry-run intent
-parsing plus the two tools that need no scanning engine at all
-(`hunter_email`, `crtsh`). Setting up the full engine (Kali container
-~3-4GB including Metasploit, plus local LLM models: llama3.2:3b ~2GB and
-llama3.1:8b ~4.7GB) is a separate, later, explicitly-confirmed step:
-`greybox setup`. See `docs/RUNBOOK.md` and `website/index.html` for why
-this split matters, especially on Windows where Docker means WSL2.
+- [Why greybox](#why-greybox)
+- [How it works](#how-it-works)
+- [Install](#install)
+- [Quickstart](#quickstart)
+- [Optional local AI (Ollama)](#optional-local-ai-ollama)
+- [Requirements](#requirements)
+- [Architecture](#architecture)
+- [Security & privacy](#security--privacy)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [Legal & ethical use](#legal--ethical-use)
+- [License](#license)
 
-## Scan execution vs. inference: only one of these can be hosted
+## Why greybox
 
-Two different things get conflated in "make this lightweight," and only
-one of them is safe to centralize:
+Running a real security assessment usually means knowing which of a dozen tools to reach for, remembering their flags, and stitching the output together into something readable. Greybox collapses that into a conversation:
 
-- **Scan execution (the Kali container) always runs on your own machine.**
-  This isn't configurable. If nmap/sqlmap traffic against a target ever
-  came from infrastructure greybox operates instead of your machine, your
-  target's logs would show a third party's IP, not yours - a different and
-  worse liability position.
-- **Report-writing inference can be local (default) or hosted**, via
-  `GREYBOX_LLM_BACKEND=local|hosted` in `.env`. By the time this runs, no
-  scan traffic is involved - it's NLP over findings you already collected
-  locally. Intent parsing (mapping your request to a tool call) stays
-  local unconditionally either way, since it's small and latency-sensitive.
-  A misconfigured hosted backend fails loud (a printed warning) and falls
-  back to local rather than degrading silently.
+- **Plain English in, real tool out.** Ask for "the open ports" or "what's this site running" and greybox maps it to the right scanner and flags.
+- **Nothing runs blind.** Every proposed command is shown to you before execution — you approve it, or you don't.
+- **Local by default.** The scanning engine, your target list, and your findings all stay on your machine unless you explicitly export them.
+- **Works without an LLM.** The core CLI, recon sweep, and reporting work with zero AI dependency. Add local inference only if you want richer natural-language understanding.
 
-## Quick start
+## How it works
+
+1. **Declare your target.** Define the site or system you're authorized to test. Greybox keeps every subsequent action scoped to it and refuses requests outside that scope.
+2. **Ask what you want to check.** Describe the check in plain English — no need to memorize tool names or flags.
+3. **Review before execution.** Greybox shows you the exact command it intends to run. Nothing executes without explicit confirmation.
+4. **Run locally, collect results.** The actual scan runs inside greybox's local environment. Findings are stored locally and can be compiled into a report.
+
+## Install
+
+The CLI is lightweight and installs with `pip`/`pipx`. The full scanning engine runs inside a Dockerized Kali environment, set up separately with `greybox setup`.
+
+### macOS
 
 ```bash
-git clone <this repo>
-cd greybox
-./install.sh          # Linux/macOS - or .\install.ps1 on Windows
+pipx install greybox-cli
+
+# Requires Docker Desktop installed and running
+greybox setup
 ```
 
-Stage 1 installs the `greybox` CLI - no Docker needed, works immediately.
-Stage 2 (separate confirmation) sets up the full engine: Kali container +
-local models. Skipped it, or want to do it later? `greybox setup` runs the
-same step whenever you're ready. `greybox config` tells you what's
-currently configured and reachable.
+### Windows
 
-You'll also want [Ollama](https://ollama.com) running on the host for
-intent parsing and local report writing:
+```powershell
+py -m pip install greybox-cli
+
+# Requires Docker Desktop with WSL2 enabled
+greybox setup
+```
+
+### Linux
 
 ```bash
+pipx install greybox-cli
+
+# Requires Docker, daemon running
+greybox setup
+```
+
+Ollama is optional on every platform — install it separately if you want local AI assistance (see [below](#optional-local-ai-ollama)).
+
+## Quickstart
+
+```bash
+# Declare what you're authorized to test
+greybox scope example.com
+
+# Ask in plain English
+greybox ask "check open ports"
+
+# Or run the standard recon sweep directly
+greybox scan example.com
+
+# List past sessions to find the session id you need
+greybox sessions
+
+# Turn a session's findings into a report
+greybox report generate <session-id>
+```
+
+## Optional local AI (Ollama)
+
+Greybox works fully without an LLM — target scoping, supported checks, the standard recon sweep, and report generation all function out of the box.
+
+Adding [Ollama](https://ollama.com) gives you:
+
+- More flexible natural-language intent parsing for `greybox ask`
+- AI-written report summaries and vulnerability explanations
+
+```bash
+# Install Ollama, then:
 ollama serve
-ollama pull llama3.2:3b     # intent parsing - always local, not configurable
-ollama pull llama3.1:8b     # report writing - local by default, hosted opt-in
+
+# Smaller model — intent parsing
+ollama pull llama3.2:3b
+
+# Larger model — report writing
+ollama pull llama3.1:8b
 ```
 
-## Using it
+All inference runs locally through Ollama. No prompt, target, or result is sent to a cloud LLM.
 
-```bash
-greybox scan example.com           # full non-destructive recon sweep + report, one command
-greybox scope example.com          # or declare a target and go tool-by-tool instead
-greybox ask "check open ports"     # plain English -> proposed command -> confirm -> run
-greybox chat                       # same thing, but a REPL instead of one-shot
-greybox sessions                   # list local sessions
-greybox report generate <id>       # PDF from everything logged in that session
-greybox config                     # what's configured and reachable right now
-greybox setup                      # set up the full Kali/Docker engine (deferrable)
-greybox set-key HUNTER_API_KEY <key>  # save an API key (e.g. for email discovery)
+## Requirements
+
+| Component  | Required?     | Purpose                                                        |
+|------------|----------------|------------------------------------------------------------------|
+| Python 3.10+ | Yes          | Runs the greybox CLI.                                           |
+| Docker     | For full scans | Runs the isolated Kali security environment.                    |
+| Ollama     | Optional       | Local LLM inference for NL understanding and report writing.    |
+| Kali tools | Via Docker     | Perform the actual security and reconnaissance checks.          |
+
+## Architecture
+
+```
+┌──────────────┐     plain-English request      ┌───────────────────┐
+│  greybox CLI │ ───────────────────────────────▶│  intent → command  │
+│              │                                  │  (rules, +Ollama)  │
+└──────┬───────┘                                  └─────────┬─────────┘
+       │ shows proposed command, waits for confirm           │
+       ▼                                                      ▼
+┌──────────────┐    docker exec    ┌───────────────────────────────┐
+│  confirmation │ ─────────────────▶│  Dockerized Kali environment  │
+│    prompt     │                   │  (nmap, whatweb, nikto, ...)  │
+└──────────────┘                    └───────────────┬───────────────┘
+                                                       │ raw results
+                                                       ▼
+                                            ┌────────────────────┐
+                                            │  local session store │
+                                            │  + report generator  │
+                                            └────────────────────┘
 ```
 
-Every proposed command is shown before it runs. Nothing executes without an
-explicit yes. Requests for a target outside your declared scope are refused.
-`greybox scan` deliberately excludes sqlmap/metasploit/privesc - those need
-explicit, deliberate targeting, not a default batch run.
+## Security & privacy
 
-## Design notes
+Greybox is built around the idea that security testing data should stay under the tester's control:
 
-- **No cloud LLM.** The old version of this project used Gemini; recon data
-  for a pentest is exactly the kind of thing that shouldn't leave your
-  machine. See `core/llm.py`.
-- **No database for scan data.** Sessions and findings are JSON files under
-  `~/.greybox/sessions/`, with a `.sha256` sidecar per session as a simple
-  local integrity/audit trail - no Postgres, no Alembic, no blockchain.
-- **Analytics, if you want them.** `telemetry/` is a separate, single-table
-  service you can host yourself if you want to know how many people have
-  installed greybox. It's off by default (`GREYBOX_TELEMETRY_OPT_IN=false`
-  in `.env`) and never receives scan data - just a random instance id and a
-  counter. See `core/telemetry.py`.
-- **One tool registry, two consumers.** `core/tools.py` is the single
-  source of truth for what greybox can run. Both the CLI and the backend's
-  `/api/scan` endpoint call into it, so a wrapper script is written once.
-  It now covers nmap, nikto, sqlmap, subdomain enum, whatweb, httprobe,
-  Linux/Windows privesc enumeration, and Metasploit auxiliary scans
-  (Kali-container tools), plus hunter.io email discovery and crt.sh
-  certificate-transparency lookups (host-side API tools, see
-  `core/osint.py`) - all through the same registry, preview, and
-  confirm-before-run path.
-- **Menu bar companion.** `menubar/` is a native macOS Swift app: click the
-  icon, see the current tab's domain, optionally run a quick scan. It's a
-  thin client over the backend's `/api/quickscan` endpoint - see
-  `menubar/README.md` and `docs/RUNBOOK.md` to build and install it.
+- **Scan traffic stays local.** The security tools run on your own machine.
+- **No cloud LLM required.** Ollama runs language models locally.
+- **Explicit confirmation.** Every proposed command is shown before it executes.
+- **Local session storage.** Findings and sessions are stored on disk, not in the cloud.
+- **Scope enforcement.** Requests outside the declared target are refused.
+- **No default telemetry.** Analytics are opt-in and disabled by default.
 
-## What was cut from the earlier prototype
+## Roadmap
 
-Blockchain audit trail, Celery/Redis task queue, Postgres/NeonDB, Nginx,
-DNS-verification gating, and a dual-mode Next.js frontend were all part of
-an earlier, SaaS-shaped version of this idea. None of that fits a tool one
-person installs and runs locally, so it isn't here. The full reasoning for
-what got cut and what got kept is in `docs/greybox_plan.md` if you want the
-history.
+- **macOS menu bar companion** *(in development)* — quickly check the site you're browsing without opening a terminal, while keeping the actual testing local.
 
-## Legal
+## Contributing
 
-Only run this against systems you own or have explicit written authorization
-to test. The scope check in `core/schema.py` is a courtesy guardrail, not a
-substitute for actual authorization.
+Greybox is an early release. If you use it, feedback on setup, scans, reports, supported systems, and anything that feels confusing is genuinely useful.
+
+- [Open an issue](https://github.com/Saachi30/greybox/issues)
+- [View source](https://github.com/Saachi30/greybox)
+
+## Legal & ethical use
+
+Greybox is a tool for authorized security testing only. You are responsible for ensuring you have explicit permission to test any target you scope or scan. Unauthorized scanning of systems you do not own or have written authorization to test may violate local, state, and federal law (including, in the US, the Computer Fraud and Abuse Act) as well as equivalent laws elsewhere. The maintainers assume no liability for misuse.
+
+## License
+
+[MIT](LICENSE)
