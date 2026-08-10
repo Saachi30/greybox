@@ -55,6 +55,23 @@ def _strip_markdown_noise(text: str) -> str:
     text = _MARKDOWN_BULLET_RE.sub("", text)
     return text
 
+
+_PREAMBLE_RE = re.compile(
+    r"^\s*(?:(?:here(?:'s| is)[^\n]*:|executive summary\s*:?)\s*\n+)+",
+    re.IGNORECASE,
+)
+
+
+def _strip_llm_preamble(text: str) -> str:
+    """Local models sometimes stack more than one lead-in before the real
+    content - e.g. a conversational "Here is a summary:" line followed by
+    a restated "Executive Summary:" heading right after it. The trailing
+    '+' lets a single sub() call eat as many consecutive preamble-shaped
+    lines as are actually there, instead of stopping after the first one.
+    """
+    return _PREAMBLE_RE.sub("", text or "", count=1)
+
+
 NATIVE_DEPS_HELP = """
 WeasyPrint (PDF rendering) needs native Pango/Cairo libraries installed on
 this machine, separately from the Python package. This is a one-time setup
@@ -84,6 +101,10 @@ Write a concise, professional 2-3 paragraph executive summary in plain
 language for a non-technical stakeholder. Do not invent findings that
 aren't in the list above. If the list is empty or inconclusive, say so
 plainly rather than padding the summary.
+
+Output only the summary paragraphs themselves. Do not include any
+preamble, meta-commentary, or heading such as "Executive Summary" - begin
+directly with the first sentence.
 """
 
 ANALYSIS_PROMPT = """You are a security analyst reviewing raw scan output from an
@@ -108,7 +129,8 @@ line exactly as:
 SEVERITY must be one of CRITICAL, HIGH, MEDIUM, LOW, INFO. Do not invent
 issues that aren't actually in the raw output - if there is nothing
 noteworthy, write a single line: [INFO] No significant issues identified
-in this pass.
+in this pass. Do not write a "none identified" line for every severity
+level - only ever write one line total when there is nothing to report.
 
 RECOMMENDED FIXES:
 One line per finding above, in the same order, with a short concrete
@@ -146,6 +168,11 @@ _SECTION_MARKERS = [
     ("RECOMMENDED FIXES:", "recommended_fixes"),
 ]
 
+_NEGATIVE_FINDING_RE = re.compile(
+    r"^(none identified\.?|no (significant )?(issues?|findings?)( identified)?\.?|n/?a\.?|not applicable\.?)$",
+    re.IGNORECASE,
+)
+
 
 def _split_analysis(text: str) -> dict[str, str]:
     """Lenient split of the model's structured response into sections.
@@ -173,7 +200,14 @@ def _split_analysis(text: str) -> dict[str, str]:
 def _parse_severity_lines(text: str) -> list[dict[str, str]]:
     """Parses '[SEVERITY] description' lines into structured rows so the
     template can render each as a colored badge, matching the same
-    severity styling already used for raw findings."""
+    severity styling already used for raw findings.
+
+    Local models don't reliably stick to "write exactly one INFO line if
+    nothing was found" - they sometimes emit a "none identified" line
+    under CRITICAL/HIGH/etc as well, one per severity level. A line like
+    that isn't a real finding, so it's dropped here rather than being
+    counted (see _count_severities) as if it were one.
+    """
     items = []
     for line in text.splitlines():
         line = line.strip("-\u2022 \t")
@@ -181,7 +215,11 @@ def _parse_severity_lines(text: str) -> list[dict[str, str]]:
             continue
         m = _SEVERITY_LINE_RE.match(line)
         if m:
-            items.append({"severity": m.group(1).lower(), "text": m.group(2).strip()})
+            severity = m.group(1).lower()
+            desc = m.group(2).strip()
+            if severity != "info" and _NEGATIVE_FINDING_RE.match(desc):
+                continue
+            items.append({"severity": severity, "text": desc})
         else:
             items.append({"severity": "info", "text": line})
     return items
@@ -215,7 +253,8 @@ def _synthesize_summary(session: Session) -> str:
         count=len(session.findings),
         findings_text=_findings_text(session),
     )
-    return _strip_markdown_noise(llm.generate_text(prompt))
+    raw = llm.generate_text(prompt)
+    return _strip_llm_preamble(_strip_markdown_noise(raw))
 
 
 def _synthesize_analysis(session: Session) -> dict:
@@ -230,7 +269,7 @@ def _synthesize_analysis(session: Session) -> dict:
         scope=session.scope,
         findings_text=_findings_text_detailed(session),
     )
-    raw = _strip_markdown_noise(llm.generate_text(prompt))
+    raw = _strip_llm_preamble(_strip_markdown_noise(llm.generate_text(prompt)))
     if not raw:
         return {"methodology": "", "findings": [], "fixes": []}
     sections = _split_analysis(raw)

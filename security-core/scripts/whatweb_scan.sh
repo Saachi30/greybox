@@ -6,14 +6,23 @@ set -euo pipefail
 
 TARGET="$1"
 OUTPUT_DIR="${2:-/root/workdir/scans}"
-AGGRESSION="${3:-1}"   # 1=stealthy, 3=aggressive (whatweb -a levels)
+AGGRESSION="${3:-1}"   # whatweb only accepts 1, 3, or 4 (there is no 2)
 
 if [ -z "$TARGET" ]; then
     echo "Usage: $0 <target_url> [output_dir] [aggression]"
-    echo "Aggression: 1 (default, passive) - 4 (aggressive)"
+    echo "Aggression: 1 (stealthy/default), 3 (aggressive), 4 (heavy)"
     echo "Example: $0 https://example.com /root/scans 1"
     exit 1
 fi
+
+case "$AGGRESSION" in
+    1|3|4) ;;
+    *)
+        echo "Error: aggression level must be 1, 3, or 4 (got '$AGGRESSION')." >&2
+        echo "  1 = passive/stealthy, 3 = aggressive, 4 = heavy" >&2
+        exit 1
+        ;;
+esac
 
 mkdir -p "$OUTPUT_DIR"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
